@@ -1,6 +1,18 @@
-// logic.js
+// logic.js - VERSÃO LIMPA
 let selectedTraits = new Set();
 let allTraits = new Set();
+
+// Inicialização segura
+function initSystem() {
+    if (typeof db !== 'undefined' && db.archetypes) {
+        allTraits.clear();
+        db.archetypes.forEach(a => a.traits.forEach(t => allTraits.add(t)));
+        renderTraits();
+        console.log("Sistema Kyomu Bakufu: Pronto.");
+    } else {
+        console.error("Erro: Banco de dados (db) não encontrado.");
+    }
+}
 
 // Objeto global para guardar os pontos sorteados do NPC
 let npcStats = {
@@ -13,7 +25,7 @@ let npcStats = {
 
 const rnd = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-// --- NOVAS FUNÇÕES DE MECÂNICA ---
+// --- FUNÇÕES DE MECÂNICA ---
 
 const renderDots = (value) => {
     const max = 5;
@@ -23,6 +35,7 @@ const renderDots = (value) => {
 function distributeStats() {
     if (typeof db === 'undefined') return;
 
+    // 1. Atributos Mundanos (7/5/3)
     const priorities = [7, 5, 3].sort(() => Math.random() - 0.5);
     const cats = Object.keys(db.mundaneAttributes); 
     
@@ -30,7 +43,9 @@ function distributeStats() {
         let points = priorities[index];
         const attrs = db.mundaneAttributes[cat];
         npcStats.attributes[cat] = {};
+        
         attrs.forEach(a => npcStats.attributes[cat][a] = 0);
+        
         while(points > 0) {
             let a = rnd(attrs);
             if(npcStats.attributes[cat][a] < 5) {
@@ -40,6 +55,7 @@ function distributeStats() {
         }
     });
 
+    // 2. Atributos Espirituais (3 pontos)
     db.spiritualAttributes.forEach(a => npcStats.spiritual[a] = 0);
     let spiritualPoints = 3;
     while(spiritualPoints > 0) {
@@ -47,6 +63,7 @@ function distributeStats() {
         if(npcStats.spiritual[a] < 5) { npcStats.spiritual[a]++; spiritualPoints--; }
     }
 
+    // 3. Perícias (10 pontos)
     db.skills.forEach(s => npcStats.skills[s] = 0);
     let skillPoints = 10;
     while(skillPoints > 0) {
@@ -54,43 +71,54 @@ function distributeStats() {
         if(npcStats.skills[s] < 5) { npcStats.skills[s]++; skillPoints--; }
     }
 
+    // 4. Conhecimentos (6 pontos)
     db.knowledge.forEach(k => npcStats.knowledge[k] = 0);
     let knowledgePoints = 6;
     while(knowledgePoints > 0) {
         let k = rnd(db.knowledge);
         if(npcStats.knowledge[k] < 5) { npcStats.knowledge[k]++; knowledgePoints--; }
     }
+    
+    npcStats.anchors = 5;
 }
 
-// --- FUNÇÕES DE IDENTIFICAÇÃO E FÍSICO (RESUMIDAS PARA SEGURANÇA) ---
+// --- FUNÇÕES DE IDENTIFICAÇÃO ---
+
 function generateName() {
-    if (typeof db === 'undefined') return;
     const gen = document.getElementById('gender').value;
     const clan = rnd(db.clans);
     const name = (gen === "Feminino") ? rnd(db.namesF) : rnd(db.namesM);
     document.getElementById('fullname').value = `${clan} ${name}`;
 }
+
 function randomizeAge() { document.getElementById('age').value = Math.floor(Math.random() * 50) + 16; }
-function randomizeOrigin() { if(typeof db !== 'undefined') document.getElementById('origin').value = rnd(db.origins); }
-function randomizeSelect(id) { const s = document.getElementById(id); if(s) s.selectedIndex = Math.floor(Math.random() * s.options.length); }
-function generateNature() { if(typeof db === 'undefined') return; const c = rnd(db.natures); document.getElementById('nature').value = c.n; document.getElementById('demeanor').value = c.d; }
-function randomizeHairStyle() { if(typeof db !== 'undefined') document.getElementById('hairStyle').value = rnd(db.hairStyles); }
-function randomizeHairColor() { if(typeof db !== 'undefined') document.getElementById('hairColor').value = rnd(db.hairColors); }
-function randomizeEyes() { if(typeof db !== 'undefined') document.getElementById('eyes').value = rnd(db.eyes); }
-function randomizeFace() { if(typeof db !== 'undefined') document.getElementById('face').value = rnd(db.face); }
-function randomizeBody() { if(typeof db !== 'undefined') document.getElementById('body').value = rnd(db.body); }
-function randomizeUnique() { if(typeof db !== 'undefined') document.getElementById('unique').value = rnd(db.unique); }
-function randomizeClothing() { if(typeof db !== 'undefined') document.getElementById('clothing').value = rnd(db.clothing); }
-function randomizeWeapon() { if(typeof db !== 'undefined') document.getElementById('weapon').value = rnd(db.weapons); }
-function randomizeAccessory() { if(typeof db !== 'undefined') document.getElementById('accessories').value = rnd(db.accessories); }
+function randomizeOrigin() { document.getElementById('origin').value = rnd(db.origins); }
+function randomizeSelect(id) { 
+    const s = document.getElementById(id); 
+    if(s) s.selectedIndex = Math.floor(Math.random() * s.options.length); 
+}
+function generateNature() { 
+    const c = rnd(db.natures); 
+    document.getElementById('nature').value = c.n; 
+    document.getElementById('demeanor').value = c.d; 
+}
+
+// --- FUNÇÕES DE FÍSICO E EQUIPAMENTO ---
+function randomizeHairStyle() { document.getElementById('hairStyle').value = rnd(db.hairStyles); }
+function randomizeHairColor() { document.getElementById('hairColor').value = rnd(db.hairColors); }
+function randomizeEyes() { document.getElementById('eyes').value = rnd(db.eyes); }
+function randomizeFace() { document.getElementById('face').value = rnd(db.face); }
+function randomizeBody() { document.getElementById('body').value = rnd(db.body); }
+function randomizeUnique() { document.getElementById('unique').value = rnd(db.unique); }
+function randomizeClothing() { document.getElementById('clothing').value = rnd(db.clothing); }
+function randomizeWeapon() { document.getElementById('weapon').value = rnd(db.weapons); }
+function randomizeAccessory() { document.getElementById('accessories').value = rnd(db.accessories); }
+
+// --- INTERFACE E EXPORTAÇÃO ---
 
 function renderTraits() {
-    if (typeof db === 'undefined') return;
     const pool = document.getElementById('trait-pool');
     if (!pool) return;
-    if (allTraits.size === 0 && db.archetypes) {
-        db.archetypes.forEach(a => a.traits.forEach(t => allTraits.add(t)));
-    }
     pool.innerHTML = '';
     Array.from(allTraits).sort().forEach(t => {
         const tag = document.createElement('span');
@@ -107,7 +135,6 @@ function renderTraits() {
 }
 
 function calcArchetype() {
-    if (typeof db === 'undefined') return;
     let best = { name: "Errante", score: -1 };
     db.archetypes.forEach(a => {
         let score = 0; a.traits.forEach(t => { if(selectedTraits.has(t)) score++; });
@@ -119,14 +146,16 @@ function calcArchetype() {
 
 function generateFinalExport() {
     distributeStats();
-    const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "Não definido";
+
+    const getVal = (id) => document.getElementById(id).value || "Não definido";
+
     const d = {
-        name: document.getElementById('fullname').value.toUpperCase(),
+        name: document.getElementById('fullname').value.toUpperCase() || "DESCONHECIDO",
         age: getVal('age'), gender: getVal('gender'), origin: getVal('origin'), align: getVal('alignment'),
         nat: getVal('nature'), dem: getVal('demeanor'), build: getVal('build'), hairStyle: getVal('hairStyle'),
         hairColor: getVal('hairColor'), eyes: getVal('eyes'), face: getVal('face'), body: getVal('body'),
         unique: getVal('unique'), clothes: getVal('clothing'), weapon: getVal('weapon'), acc: getVal('accessories'),
-        arch: getVal('final-archetype')
+        arch: document.getElementById('final-archetype').value || "Errante"
     };
 
     let statsSection = "\n[ATRIBUTOS MUNDANOS]\n";
@@ -142,13 +171,43 @@ function generateFinalExport() {
         statsSection += `  ${attr.padEnd(15)} ${renderDots(npcStats.spiritual[attr])}\n`;
     }
 
-    const sheet = `KYOMU BAKUFU - REGISTRO DE PERSONAGEM\n------------------------------------\nNOME: ${d.name} | ARQUÉTIPO: ${d.arch}\nÂNCORAS: ${renderDots(npcStats.anchors)}\n${statsSection}\n------------------------------------\n[DESCRIÇÃO FÍSICA]\nPorte: ${d.build} | Cabelo: ${d.hairStyle} (${d.hairColor})\nOlhos: ${d.eyes} | Rosto: ${d.face}\nCorpo: ${d.body} | Marca: ${d.unique}\n\n[EQUIPAMENTO]\nVestes: ${d.clothes} | Arma: ${d.weapon}\nAcessório: ${d.acc}\n\n[PERFIL PSICOLÓGICO]\nAlinhamento: ${d.align}\nNatureza: ${d.nat} | Comportamento: ${d.dem}`.trim();
+    statsSection += "\n[PERÍCIAS & CONHECIMENTOS]\n";
+    const allSkills = {...npcStats.skills, ...npcStats.knowledge};
+    Object.keys(allSkills).sort().forEach(s => {
+        if(allSkills[s] > 0) {
+            statsSection += `  ${s.padEnd(18)} ${renderDots(allSkills[s])}\n`;
+        }
+    });
+
+    const sheet = `
+KYOMU BAKUFU - REGISTRO DE PERSONAGEM
+------------------------------------
+NOME: ${d.name} | ARQUÉTIPO: ${d.arch}
+ÂNCORAS: ${renderDots(npcStats.anchors)}
+${statsSection}
+------------------------------------
+[DESCRIÇÃO FÍSICA]
+Porte: ${d.build} | Cabelo: ${d.hairStyle} (${d.hairColor})
+Olhos: ${d.eyes} | Rosto: ${d.face}
+Corpo: ${d.body} | Marca: ${d.unique}
+
+[EQUIPAMENTO]
+Vestes: ${d.clothes}
+Arma: ${d.weapon}
+Acessório: ${d.acc}
+
+[PERFIL PSICOLÓGICO]
+Alinhamento: ${d.align}
+Natureza: ${d.nat} | Comportamento: ${d.dem}
+    `.trim();
+
     document.getElementById('char-sheet').textContent = sheet;
 
     const mood = d.align.includes("Mau") ? "menacing expression, dark aura, intimidating" : "serene, calm look, heroic posture";
     const prompt = `(masterpiece:1.2, best quality), anime style, dark fantasy spiritual, (feudal japan 1230:1.1), ${d.gender === "Feminino" ? "japanese woman" : "japanese man"}, ${d.age} years old, ${d.origin}, physical build: ${d.build}, facial features: ${d.face}, hairstyle: ${d.hairStyle}, hair color: ${d.hairColor}, eyes: ${d.eyes}, body detail: ${d.body}, unique mark: ${d.unique}, wearing ${d.clothes}, holding ${d.weapon}, ${d.acc}, ${mood}, cinematic lighting, high contrast, (ink wash splashes:0.7), (jujutsu kaisen aesthetic:0.9), volumetric fog.`;
+
     document.getElementById('ai-prompt').textContent = prompt;
 }
 
-// Inicialização segura
-window.addEventListener('load', () => { if(typeof renderTraits === 'function') renderTraits(); });
+// Inicialização Unificada
+window.addEventListener('load', initSystem);
