@@ -64,7 +64,7 @@ function calcArchetype() {
 }
 
 function generateFinalExport() {
-    // Captura segura de dados
+    // Captura segura de dados (se o campo estiver vazio, usa um fallback)
     const getVal = (id) => document.getElementById(id).value || "Não definido";
 
     const d = {
@@ -76,7 +76,8 @@ function generateFinalExport() {
         nat: getVal('nature'),
         dem: getVal('demeanor'),
         build: getVal('build'),
-        hair: `${getVal('hairStyle')} (${getVal('hairColor')})`,
+        hairStyle: getVal('hairStyle'),
+        hairColor: getVal('hairColor'),
         eyes: getVal('eyes'),
         face: getVal('face'),
         body: getVal('body'),
@@ -87,36 +88,53 @@ function generateFinalExport() {
         arch: document.getElementById('final-archetype').value || "Errante"
     };
 
-    // Ficha Detalhada
-    const sheet = `KYOMU BAKUFU - REGISTRO OFICIAL\n------------------------------\nNOME: ${d.name}\nORIGEM: ${d.origin}\nARQUÉTIPO: ${d.arch}\n\nPSICOLOGIA:\n- Alinhamento: ${d.align}\n- Natureza: ${d.nat} / Comportamento: ${d.dem}\n\nFÍSICO:\n- Porte: ${d.build}\n- Cabelo: ${d.hair}\n- Olhos: ${d.eyes}\n- Rosto: ${d.face}\n- Corpo: ${d.body}\n- Marca Única: ${d.unique}\n\nEQUIPAMENTO:\n- Vestes: ${d.clothes}\n- Arma: ${d.weapon}\n- Acessório: ${d.acc}`;
+    // 1. Ficha Narrativa Detalhada
+    const sheet = `
+KYOMU BAKUFU - REGISTRO DE PERSONAGEM
+------------------------------------
+NOME: ${d.name}
+IDADE: ${d.age} anos | GÊNERO: ${d.gender}
+ORIGEM: ${d.origin}
+ARQUÉTIPO: ${d.arch}
+
+[PERFIL PSICOLÓGICO]
+Alinhamento: ${d.align}
+Natureza: ${d.nat} | Comportamento: ${d.dem}
+
+[DESCRIÇÃO FÍSICA]
+Porte: ${d.build}
+Cabelo: ${d.hairStyle} na cor ${d.hairColor}
+Olhos: ${d.eyes}
+Feições: ${d.face}
+Corpo: ${d.body}
+Marca Única: ${d.unique}
+
+[EQUIPAMENTO]
+Vestes: ${d.clothes}
+Arma: ${d.weapon}
+Acessório: ${d.acc}
+    `.trim();
+
     document.getElementById('char-sheet').textContent = sheet;
 
-    // Prompt IA (Otimizado para Nano Banana)
-    const mood = d.align.includes("Mau") ? "menacing, dark aura, sharp eyes" : "serene, dignified posture, calm gaze";
+    // 2. Prompt Otimizado para Nano Banana
+    // Definimos o humor visual baseado no alinhamento
+    const mood = d.align.includes("Mau") ? "menacing expression, dark aura, intimidating" : "serene, calm look, heroic posture";
     
-    const prompt = `(masterpiece:1.2, best quality), anime style, dark fantasy, (feudal japan:1.1), ${d.gender === "Feminino" ? "woman" : "man"}, ${d.age}yo, ${d.origin}, ${d.build} build, face: ${d.face}, hair: ${d.hair}, eyes: ${d.eyes}, body: ${d.body}, unique mark: ${d.unique}, wearing ${d.clothes}, holding ${d.weapon}, ${d.acc}, ${mood}, cinematic lighting, high contrast, (jujutsu kaisen aesthetic:0.8), (ink splashes:0.5).`;
-    
+    const prompt = `(masterpiece:1.2, best quality), anime style, dark fantasy spiritual, (feudal japan 1230:1.1), ${d.gender === "Feminino" ? "japanese woman" : "japanese man"}, ${d.age} years old, ${d.origin}, physical build: ${d.build}, facial features: ${d.face}, hairstyle: ${d.hairStyle}, hair color: ${d.hairColor}, eyes: ${d.eyes}, body detail: ${d.body}, unique mark: ${d.unique}, wearing ${d.clothes}, holding ${d.weapon}, ${d.acc}, ${mood}, cinematic lighting, high contrast, (ink wash splashes:0.7), (jujutsu kaisen aesthetic:0.9), volumetric fog.`;
+
     document.getElementById('ai-prompt').textContent = prompt;
 }
 
-// Sistema de Cópia Robusto para Google Sites
+// Função de Cópia otimizada (Funciona Local e no Sites)
 function copyToClipboard(elementId, btn) {
-    const element = document.getElementById(elementId);
-    const text = element.innerText || element.textContent;
+    const text = document.getElementById(elementId).innerText;
 
-    const showSuccess = (b) => {
-        if (b) {
-            const originalText = b.innerText;
-            b.innerText = "✅ Copiado!";
-            b.style.color = "#2ecc71";
-            setTimeout(() => { b.innerText = originalText; b.style.color = "var(--accent)"; }, 2000);
-        } else {
-            alert("Copiado com sucesso!");
-        }
-    };
-
+    // Tenta usar a API moderna (localmente funciona 100%)
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => showSuccess(btn)).catch(() => fallbackCopy(text, btn));
+        navigator.clipboard.writeText(text).then(() => {
+            showSuccess(btn);
+        }).catch(() => fallbackCopy(text, btn));
     } else {
         fallbackCopy(text, btn);
     }
@@ -137,8 +155,19 @@ function copyToClipboard(elementId, btn) {
         }
         document.body.removeChild(textArea);
     }
+
+    function showSuccess(b) {
+        const originalText = b.innerText;
+        b.innerText = "✅ Copiado!";
+        b.style.color = "#2ecc71";
+        setTimeout(() => {
+            b.innerText = originalText;
+            b.style.color = "var(--accent)";
+        }, 2000);
+    }
 }
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', renderTraits);
 renderTraits();
+
