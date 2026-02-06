@@ -66,8 +66,8 @@ function generateFinalExport() {
     const d = {
         name: document.getElementById('fullname').value || "Desconhecido",
         age: document.getElementById('age').value,
-        origin: document.getElementById('origin').value,
         gender: document.getElementById('gender').value,
+        origin: document.getElementById('origin').value || "Sem Origem",
         align: document.getElementById('alignment').value,
         nat: document.getElementById('nature').value,
         dem: document.getElementById('demeanor').value,
@@ -83,15 +83,38 @@ function generateFinalExport() {
         arch: document.getElementById('final-archetype').value || "Errante"
     };
 
-    const sheet = `KYOMU BAKUFU - NPC\nNOME: ${d.name.toUpperCase()}\nORIGEM: ${d.origin}\nARQUÉTIPO: ${d.arch}\n\nFÍSICO: ${d.build}, Cabelo ${d.hair}, Olhos ${d.eyes}. ${d.face}. ${d.body}. Marca: ${d.unique}.\n\nEQUIPAMENTO: ${d.clothes}, ${d.weapon}, ${d.acc}.`;
+    // Ficha 
+    const sheet = `KYOMU BAKUFU - REGISTRO\nNOME: ${d.name.toUpperCase()}\nORIGEM: ${d.origin}\nARQUÉTIPO: ${d.arch}\n\nFÍSICO: ${d.build}, Cabelo ${d.hair}, Olhos ${d.eyes}.\nROSTO: ${d.face}\nCORPO: ${d.body}\nMARCA: ${d.unique}\n\nEQUIPAMENTO: ${d.clothes}, ${d.weapon}, ${d.acc}.`;
     document.getElementById('char-sheet').textContent = sheet;
 
-    const mood = d.align.includes("Mau") ? "menacing, dark aura" : "serene, heroic";
-    const prompt = `(masterpiece, anime style), ${d.gender === "Feminino" ? "woman" : "man"}, ${d.age}yo, ${d.origin}, ${d.build} build, face: ${d.face}, hair: ${d.hair}, eyes: ${d.eyes}, wearing ${d.clothes}, holding ${d.weapon}, ${d.acc}, ${mood}, cinematic lighting.`;
+    // Prompt IA
+    const prompt = `(masterpiece, anime style:1.2), ${d.gender === "Feminino" ? "woman" : "man"}, ${d.age}yo, ${d.origin}, ${d.build} build, face: ${d.face}, hair: ${d.hair}, eyes: ${d.eyes}, body: ${d.body}, unique mark: ${d.unique}, wearing ${d.clothes}, holding ${d.weapon}, ${d.acc}, jujutsu kaisen aesthetic, cinematic lighting.`;
     document.getElementById('ai-prompt').textContent = prompt;
 }
 
 // Inicialização
 
 document.addEventListener('DOMContentLoaded', renderTraits);
+function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = event.target;
+        const originalText = btn.innerText;
+        
+        btn.innerText = "✅ Copiado!";
+        btn.style.borderColor = "#2ecc71";
+        btn.style.color = "#2ecc71";
+        
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.borderColor = "var(--accent)";
+            btn.style.color = "var(--accent)";
+        }, 2000);
+    }).catch(err => {
+        console.error('Erro ao copiar: ', err);
+    });
+}
+
+// ESTA DEVE SER A ÚLTIMA LINHA DO ARQUIVO
 renderTraits();
+
