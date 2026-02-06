@@ -92,4 +92,6 @@ function generateFinalExport() {
 }
 
 // Inicialização
+
 document.addEventListener('DOMContentLoaded', renderTraits);
+renderTraits();
