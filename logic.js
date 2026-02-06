@@ -95,48 +95,68 @@ function generateFinalExport() {
 // Inicialização
 
 document.addEventListener('DOMContentLoaded', renderTraits);
-function copyToClipboard(elementId) {
+function copyToClipboard(elementId, btn) {
     const element = document.getElementById(elementId);
     const text = element.innerText || element.textContent;
 
-    // Tenta usar a API moderna primeiro
+    // Função interna para dar feedback visual no botão
+    const showSuccess = (button) => {
+        if (!button) {
+            alert("Copiado com sucesso!");
+            return;
+        }
+        const originalText = button.innerText;
+        button.innerText = "✅ Copiado!";
+        button.style.color = "#2ecc71";
+        button.style.borderColor = "#2ecc71";
+        setTimeout(() => {
+            button.innerText = originalText;
+            button.style.color = "var(--accent)";
+            button.style.borderColor = "var(--accent)";
+        }, 2000);
+    };
+
+    // Tenta o método moderno
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-            showFeedback();
-        }).catch(err => {
-            fallbackCopy(text);
-        });
+        navigator.clipboard.writeText(text)
+            .then(() => showSuccess(btn))
+            .catch(() => fallbackCopy(text));
     } else {
-        // Plano B para navegadores antigos ou restrições de iframe
         fallbackCopy(text);
     }
 
+    // Método "Fallback" para Google Sites / IFrames
     function fallbackCopy(textToCopy) {
-        const textArea = document.createElement("textarea");
-        textArea.value = textToCopy;
-        textArea.style.position = "fixed"; // Evita scroll
-        textArea.style.left = "-9999px";
-        textArea.style.top = "0";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
         try {
-            document.execCommand('copy');
-            showFeedback();
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            
+            // Torna o elemento invisível mas presente no DOM
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            
+            textArea.focus();
+            textArea.select();
+            
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            if (successful) {
+                showSuccess(btn);
+            } else {
+                alert("Não foi possível copiar automaticamente. Selecione o texto e use Ctrl+C.");
+            }
         } catch (err) {
-            console.error('Erro ao copiar plano B:', err);
+            console.error('Erro no fallback:', err);
+            alert("Erro ao copiar. Tente selecionar manualmente.");
         }
-        document.body.removeChild(textArea);
-    }
-
-    function showFeedback() {
-        // Como o 'event' pode falhar em iframes, buscamos o botão pelo contexto se possível
-        // ou apenas exibimos um alerta simples para confirmar
-        alert("Copiado com sucesso!");
     }
 }
 
 // ESTA DEVE SER A ÚLTIMA LINHA DO ARQUIVO
 renderTraits();
+
 
 
