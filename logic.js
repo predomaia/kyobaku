@@ -129,8 +129,12 @@ Acessório: ${d.acc}
 function copyToClipboard(elementId, btn) {
     const text = document.getElementById(elementId).innerText;
 
-    // Função para mostrar sucesso
     const showSuccess = (b) => {
+        // Proteção: se o botão não existir (undefined), usa um alert
+        if (!b) {
+            alert("✅ Copiado!");
+            return;
+        }
         const originalText = b.innerText;
         b.innerText = "✅ Copiado!";
         b.style.color = "#2ecc71";
@@ -140,27 +144,35 @@ function copyToClipboard(elementId, btn) {
         }, 2000);
     };
 
-    // Método Robusto (Funciona em Local e Iframe)
     const textArea = document.createElement("textarea");
     textArea.value = text;
     textArea.style.position = "fixed";
     textArea.style.left = "-9999px";
     textArea.style.top = "0";
     document.body.appendChild(textArea);
+    
+    // Importante para mobile e alguns navegadores
     textArea.focus();
     textArea.select();
+    textArea.setSelectionRange(0, 99999); 
 
     try {
         const successful = document.execCommand('copy');
-        if (successful) showSuccess(btn);
+        if (successful) {
+            showSuccess(btn);
+        } else {
+            console.error('Comando de cópia não foi bem sucedido');
+        }
     } catch (err) {
         console.error('Erro ao copiar:', err);
     }
+    
     document.body.removeChild(textArea);
 }
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', renderTraits);
 renderTraits();
+
 
 
