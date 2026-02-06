@@ -5,6 +5,7 @@ db.archetypes.forEach(a => a.traits.forEach(t => allTraits.add(t)));
 
 const rnd = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
+// Funções de Identificação
 function generateName() {
     const gen = document.getElementById('gender').value;
     const clan = rnd(db.clans);
@@ -63,100 +64,81 @@ function calcArchetype() {
 }
 
 function generateFinalExport() {
+    // Captura segura de dados
+    const getVal = (id) => document.getElementById(id).value || "Não definido";
+
     const d = {
-        name: document.getElementById('fullname').value || "Desconhecido",
-        age: document.getElementById('age').value,
-        gender: document.getElementById('gender').value,
-        origin: document.getElementById('origin').value || "Sem Origem",
-        align: document.getElementById('alignment').value,
-        nat: document.getElementById('nature').value,
-        dem: document.getElementById('demeanor').value,
-        build: document.getElementById('build').value,
-        hair: `${document.getElementById('hairStyle').value} (${document.getElementById('hairColor').value})`,
-        eyes: document.getElementById('eyes').value,
-        face: document.getElementById('face').value,
-        body: document.getElementById('body').value,
-        unique: document.getElementById('unique').value,
-        clothes: document.getElementById('clothing').value,
-        weapon: document.getElementById('weapon').value,
-        acc: document.getElementById('accessories').value,
+        name: document.getElementById('fullname').value.toUpperCase() || "DESCONHECIDO",
+        age: getVal('age'),
+        gender: getVal('gender'),
+        origin: getVal('origin'),
+        align: getVal('alignment'),
+        nat: getVal('nature'),
+        dem: getVal('demeanor'),
+        build: getVal('build'),
+        hair: `${getVal('hairStyle')} (${getVal('hairColor')})`,
+        eyes: getVal('eyes'),
+        face: getVal('face'),
+        body: getVal('body'),
+        unique: getVal('unique'),
+        clothes: getVal('clothing'),
+        weapon: getVal('weapon'),
+        acc: getVal('accessories'),
         arch: document.getElementById('final-archetype').value || "Errante"
     };
 
-    // Ficha 
-    const sheet = `KYOMU BAKUFU - REGISTRO\nNOME: ${d.name.toUpperCase()}\nORIGEM: ${d.origin}\nARQUÉTIPO: ${d.arch}\n\nFÍSICO: ${d.build}, Cabelo ${d.hair}, Olhos ${d.eyes}.\nROSTO: ${d.face}\nCORPO: ${d.body}\nMARCA: ${d.unique}\n\nEQUIPAMENTO: ${d.clothes}, ${d.weapon}, ${d.acc}.`;
+    // Ficha Detalhada
+    const sheet = `KYOMU BAKUFU - REGISTRO OFICIAL\n------------------------------\nNOME: ${d.name}\nORIGEM: ${d.origin}\nARQUÉTIPO: ${d.arch}\n\nPSICOLOGIA:\n- Alinhamento: ${d.align}\n- Natureza: ${d.nat} / Comportamento: ${d.dem}\n\nFÍSICO:\n- Porte: ${d.build}\n- Cabelo: ${d.hair}\n- Olhos: ${d.eyes}\n- Rosto: ${d.face}\n- Corpo: ${d.body}\n- Marca Única: ${d.unique}\n\nEQUIPAMENTO:\n- Vestes: ${d.clothes}\n- Arma: ${d.weapon}\n- Acessório: ${d.acc}`;
     document.getElementById('char-sheet').textContent = sheet;
 
-    // Prompt IA
-    const prompt = `(masterpiece, anime style:1.2), ${d.gender === "Feminino" ? "woman" : "man"}, ${d.age}yo, ${d.origin}, ${d.build} build, face: ${d.face}, hair: ${d.hair}, eyes: ${d.eyes}, body: ${d.body}, unique mark: ${d.unique}, wearing ${d.clothes}, holding ${d.weapon}, ${d.acc}, jujutsu kaisen aesthetic, cinematic lighting.`;
+    // Prompt IA (Otimizado para Nano Banana)
+    const mood = d.align.includes("Mau") ? "menacing, dark aura, sharp eyes" : "serene, dignified posture, calm gaze";
+    
+    const prompt = `(masterpiece:1.2, best quality), anime style, dark fantasy, (feudal japan:1.1), ${d.gender === "Feminino" ? "woman" : "man"}, ${d.age}yo, ${d.origin}, ${d.build} build, face: ${d.face}, hair: ${d.hair}, eyes: ${d.eyes}, body: ${d.body}, unique mark: ${d.unique}, wearing ${d.clothes}, holding ${d.weapon}, ${d.acc}, ${mood}, cinematic lighting, high contrast, (jujutsu kaisen aesthetic:0.8), (ink splashes:0.5).`;
+    
     document.getElementById('ai-prompt').textContent = prompt;
 }
 
-// Inicialização
-
-document.addEventListener('DOMContentLoaded', renderTraits);
+// Sistema de Cópia Robusto para Google Sites
 function copyToClipboard(elementId, btn) {
     const element = document.getElementById(elementId);
     const text = element.innerText || element.textContent;
 
-    // Função interna para dar feedback visual no botão
-    const showSuccess = (button) => {
-        if (!button) {
+    const showSuccess = (b) => {
+        if (b) {
+            const originalText = b.innerText;
+            b.innerText = "✅ Copiado!";
+            b.style.color = "#2ecc71";
+            setTimeout(() => { b.innerText = originalText; b.style.color = "var(--accent)"; }, 2000);
+        } else {
             alert("Copiado com sucesso!");
-            return;
         }
-        const originalText = button.innerText;
-        button.innerText = "✅ Copiado!";
-        button.style.color = "#2ecc71";
-        button.style.borderColor = "#2ecc71";
-        setTimeout(() => {
-            button.innerText = originalText;
-            button.style.color = "var(--accent)";
-            button.style.borderColor = "var(--accent)";
-        }, 2000);
     };
 
-    // Tenta o método moderno
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text)
-            .then(() => showSuccess(btn))
-            .catch(() => fallbackCopy(text));
+        navigator.clipboard.writeText(text).then(() => showSuccess(btn)).catch(() => fallbackCopy(text, btn));
     } else {
-        fallbackCopy(text);
+        fallbackCopy(text, btn);
     }
 
-    // Método "Fallback" para Google Sites / IFrames
-    function fallbackCopy(textToCopy) {
+    function fallbackCopy(textToCopy, b) {
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
         try {
-            const textArea = document.createElement("textarea");
-            textArea.value = textToCopy;
-            
-            // Torna o elemento invisível mas presente no DOM
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
-            textArea.style.top = "0";
-            document.body.appendChild(textArea);
-            
-            textArea.focus();
-            textArea.select();
-            
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-            
-            if (successful) {
-                showSuccess(btn);
-            } else {
-                alert("Não foi possível copiar automaticamente. Selecione o texto e use Ctrl+C.");
-            }
+            document.execCommand('copy');
+            showSuccess(b);
         } catch (err) {
-            console.error('Erro no fallback:', err);
-            alert("Erro ao copiar. Tente selecionar manualmente.");
+            console.error('Erro ao copiar:', err);
         }
+        document.body.removeChild(textArea);
     }
 }
 
-// ESTA DEVE SER A ÚLTIMA LINHA DO ARQUIVO
+// Inicialização
+document.addEventListener('DOMContentLoaded', renderTraits);
 renderTraits();
-
-
-
