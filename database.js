@@ -65,5 +65,37 @@ const db = {
         { name: "O Berserker", traits: ["volátil", "agressivo", "dominante", "forte"] },
         { name: "O Trapaceiro", traits: ["esperto", "imprevisível", "flexível", "mentiroso"] },
         { name: "O Místico", traits: ["misterioso", "observador", "intuitivo", "calmo"] }
+    ],
+
+    mundaneAttributes: {
+        Físicos: ["Força", "Destreza", "Vigor"],
+        Sociais: ["Carisma", "Manipulação", "Presença"],
+        Mentais: ["Percepção", "Raciocínio", "Inteligência"]
+    },
+
+    spiritualAttributes: ["TEN (Céu)", "TAI (Corpo)", "CHI (Mente)", "REI (Alma)"],
+
+    skills: [
+        "Acrobacia", "Atletismo", "Diplomacia", "Decifrar", "Empatia", "Escalar", 
+        "Escutar", "Furtividade", "Intimidação", "Lábia", "Liderança", "Manha", 
+        "Manuseio", "Meditação", "Montaria", "Observar", "Performance", 
+        "Presciência", "Prontidão", "Reparos", "Rastreio", "Segurança"
+    ],
+
+    knowledge: [
+        "Ocultismo", "Arsenal", "Artes", "Cartografia", "Ciências Biológicas", 
+        "Ciências Naturais", "Ciências Humanas", "Investigação", "Linguística", 
+        "Medicina", "Religião"
+    ],
+
+    anchorScaling: [
+        { maxPoder: 4, anchors: 5 },
+        { maxPoder: 10, anchors: 6 },
+        { maxPoder: 15, anchors: 7 },
+        { maxPoder: 20, anchors: 8 },
+        { maxPoder: 25, anchors: 9 },
+        { maxPoder: 30, anchors: 10 }
     ]
+};
+
 };
