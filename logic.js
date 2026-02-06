@@ -126,37 +126,11 @@ Acessório: ${d.acc}
     document.getElementById('ai-prompt').textContent = prompt;
 }
 
-// Função de Cópia otimizada (Funciona Local e no Sites)
 function copyToClipboard(elementId, btn) {
     const text = document.getElementById(elementId).innerText;
 
-    // Tenta usar a API moderna (localmente funciona 100%)
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-            showSuccess(btn);
-        }).catch(() => fallbackCopy(text, btn));
-    } else {
-        fallbackCopy(text, btn);
-    }
-
-    function fallbackCopy(textToCopy, b) {
-        const textArea = document.createElement("textarea");
-        textArea.value = textToCopy;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-9999px";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-            document.execCommand('copy');
-            showSuccess(b);
-        } catch (err) {
-            console.error('Erro ao copiar:', err);
-        }
-        document.body.removeChild(textArea);
-    }
-
-    function showSuccess(b) {
+    // Função para mostrar sucesso
+    const showSuccess = (b) => {
         const originalText = b.innerText;
         b.innerText = "✅ Copiado!";
         b.style.color = "#2ecc71";
@@ -164,10 +138,29 @@ function copyToClipboard(elementId, btn) {
             b.innerText = originalText;
             b.style.color = "var(--accent)";
         }, 2000);
+    };
+
+    // Método Robusto (Funciona em Local e Iframe)
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) showSuccess(btn);
+    } catch (err) {
+        console.error('Erro ao copiar:', err);
     }
+    document.body.removeChild(textArea);
 }
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', renderTraits);
 renderTraits();
+
 
