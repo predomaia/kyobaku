@@ -97,5 +97,3 @@ const db = {
         { maxPoder: 30, anchors: 10 }
     ]
 };
-
-};
