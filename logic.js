@@ -96,25 +96,47 @@ function generateFinalExport() {
 
 document.addEventListener('DOMContentLoaded', renderTraits);
 function copyToClipboard(elementId) {
-    const text = document.getElementById(elementId).innerText;
-    navigator.clipboard.writeText(text).then(() => {
-        const btn = event.target;
-        const originalText = btn.innerText;
-        
-        btn.innerText = "✅ Copiado!";
-        btn.style.borderColor = "#2ecc71";
-        btn.style.color = "#2ecc71";
-        
-        setTimeout(() => {
-            btn.innerText = originalText;
-            btn.style.borderColor = "var(--accent)";
-            btn.style.color = "var(--accent)";
-        }, 2000);
-    }).catch(err => {
-        console.error('Erro ao copiar: ', err);
-    });
+    const element = document.getElementById(elementId);
+    const text = element.innerText || element.textContent;
+
+    // Tenta usar a API moderna primeiro
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            showFeedback();
+        }).catch(err => {
+            fallbackCopy(text);
+        });
+    } else {
+        // Plano B para navegadores antigos ou restrições de iframe
+        fallbackCopy(text);
+    }
+
+    function fallbackCopy(textToCopy) {
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "fixed"; // Evita scroll
+        textArea.style.left = "-9999px";
+        textArea.style.top = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showFeedback();
+        } catch (err) {
+            console.error('Erro ao copiar plano B:', err);
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function showFeedback() {
+        // Como o 'event' pode falhar em iframes, buscamos o botão pelo contexto se possível
+        // ou apenas exibimos um alerta simples para confirmar
+        alert("Copiado com sucesso!");
+    }
 }
 
 // ESTA DEVE SER A ÚLTIMA LINHA DO ARQUIVO
 renderTraits();
+
 
